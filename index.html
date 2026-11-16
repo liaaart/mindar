@@ -1,279 +1,206 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mi Pastelería AR</title>
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#ffe7ee">
+  <title>Dulce colección | Pastelería AR</title>
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-    }
-
-    .panel {
-      position: fixed;
-      z-index: 10;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 85%;
-      max-width: 360px;
-      padding: 15px;
-      text-align: center;
-      border-radius: 22px;
-      background: #fff3f0;
-      color: #935e72;
-      box-shadow: 0 4px 15px #0002;
-      pointer-events: none;
-    }
-
-    #encabezado {
-      top: 20px;
-    }
-
-    #mensaje {
-      bottom: 25px;
-      font-size: 15px;
-    }
-
-    h2 {
-      margin: 0 0 8px;
-    }
-
-    #contador {
-      font-size: 20px;
-      margin-top: 8px;
-    }
+    :root { --ink:#704c62; --rose:#ec82a6; --cream:#fffaf3; --border:#f4c6d7; }
+    * {box-sizing:border-box}
+    body {margin:0;overflow:hidden;font-family:ui-rounded,'Trebuchet MS',Arial,sans-serif;color:var(--ink);background:#fff0f3}
+    .hud {position:fixed;inset:0;z-index:20;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 14px) 15px calc(env(safe-area-inset-bottom) + 18px)}
+    .top {width:min(100%,410px);background:rgba(255,250,247,.94);border:2px solid #fff;border-radius:27px;padding:14px 17px 13px;box-shadow:0 8px 26px #6e32512c;text-align:center;backdrop-filter:blur(8px)}
+    .eyebrow {font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#c47796;font-weight:bold}
+    h1 {margin:3px 0 5px;font-size:23px;letter-spacing:-.5px}
+    .subtitle {margin:0;font-size:13px;color:#946b82}
+    .stamps {display:flex;gap:7px;justify-content:center;margin-top:11px}
+    .stamp {border:1.5px solid #f5d0df;background:#fff1f5;border-radius:999px;padding:7px 10px;font-size:12px;opacity:.65;transition:.3s}
+    .stamp.found {background:#ffe0ec;border-color:#f5a9c3;opacity:1;box-shadow:0 3px 12px #f8b3ce80}
+    .scanner {position:absolute;left:50%;top:51%;transform:translate(-50%,-50%);width:min(66vw,295px);aspect-ratio:1;border:3px dashed #ffffffeb;border-radius:30px;filter:drop-shadow(0 2px 3px #5f365988);transition:opacity .25s}
+    .scanner::after {content:'✦';position:absolute;right:-9px;top:-20px;font-size:25px;color:#fff}
+    .scanner.hidden {opacity:0}
+    .bottom {width:min(100%,410px);background:rgba(255,250,247,.96);border:2px solid #fff;border-radius:26px;padding:16px;text-align:center;box-shadow:0 9px 28px #6e32512e;pointer-events:auto;backdrop-filter:blur(8px)}
+    #status {font-size:12px;color:#ab8194;margin-bottom:6px}
+    #message {font-size:16px;font-weight:bold;line-height:1.4;min-height:42px;display:flex;align-items:center;justify-content:center}
+    #collect {border:0;border-radius:17px;width:100%;margin-top:10px;min-height:52px;background:linear-gradient(135deg,#f9a6bf,#e782a5);color:#632c49;font-weight:800;font-size:15px;box-shadow:0 5px 0 #d87599;cursor:pointer;touch-action:manipulation}
+    #collect:disabled {background:#f2dce4;color:#ac8a9c;box-shadow:none;cursor:default}
+    #reset {border:0;background:transparent;color:#a77891;text-decoration:underline;padding:10px 8px 0;font-size:12px;cursor:pointer}
+    .sparkle {display:none;font-size:24px;margin:5px}
+    .sparkle.on {display:block;animation:pop .4s both}
+    @keyframes pop {from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+    [hidden]{display:none!important}
   </style>
 </head>
-
 <body>
-
-  <div class="panel" id="encabezado">
-    <h2>🍰 Mi Pastelería AR</h2>
-    <div>Encuentra los 3 postres</div>
-    <div id="contador">🤍 🤍 🤍</div>
-  </div>
-
-  <div class="panel" id="mensaje">
-    Apunta la cámara hacia un postre 💕
+  <div class="hud">
+    <header class="top">
+      <div class="eyebrow">mini pastelería mágica</div>
+      <h1>🍰 Dulce colección ♡</h1>
+      <p class="subtitle">Busca los postrecitos y completa tu colección</p>
+      <div class="stamps">
+        <span id="stamp0" class="stamp">🥐 Croissant</span>
+        <span id="stamp1" class="stamp">🧁 Panqué</span>
+        <span id="stamp2" class="stamp">🎂 Pastel</span>
+      </div>
+    </header>
+    <div id="scanner" class="scanner" aria-hidden="true"></div>
+    <section class="bottom" aria-live="polite">
+      <div id="status">Preparando la cámara…</div>
+      <div id="message">Apunta a una de las imágenes de postres ♡</div>
+      <div id="sparkle" class="sparkle" aria-hidden="true">✨ 💕 ✨</div>
+      <button id="collect" type="button" disabled>Encuentra un postre primero</button>
+      <button id="reset" type="button">Reiniciar colección ↺</button>
+    </section>
   </div>
 
   <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 3; uiScanning: no"
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 4; uiLoading: yes; uiScanning: no; uiError: yes"
     color-space="sRGB"
     renderer="colorManagement: true; physicallyCorrectLights: true"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false">
-
-    <a-assets>
-      <a-asset-item id="croissant" src="./croissant.glb"></a-asset-item>
-      <a-asset-item id="panque" src="./panque.glb"></a-asset-item>
-      <a-asset-item id="banderilla" src="./banderilla.glb"></a-asset-item>
+    <a-assets timeout="25000">
+      <a-asset-item id="modelCroissant" src="./croissant.glb"></a-asset-item>
+      <a-asset-item id="modelPanque" src="./panque.glb"></a-asset-item>
+      <a-asset-item id="modelPastel" src="./pastel.glb"></a-asset-item>
     </a-assets>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <a-camera
-      position="0 0 0"
-      look-controls="enabled: false"
-      cursor="fuse: false; rayOrigin: mouse"
-      raycaster="objects: .tocable; near: 0; far: 100">
-    </a-camera>
-
-    <!-- POSTRE 1: CROISSANT -->
+    <!-- Croissant: primer target del archivo compilado -->
     <a-entity id="target0" mindar-image-target="targetIndex: 0">
-
-      <a-circle color="#FFD6E7"
-        radius="0.44" position="0 0 0.01">
-      </a-circle>
-
-      <a-ring id="anillo0"
-        color="#FFFFFF"
-        radius-inner="0.40"
-        radius-outer="0.44"
-        position="0 0 0.02">
-      </a-ring>
-
-      <a-gltf-model
-        src="#croissant"
-        rotation="90 0 0"
-        position="0 0 0.05"
-        scale="0.022 0.022 0.022">
-      </a-gltf-model>
-
-      <a-text value="Croissant"
-        align="center" color="#8C5168"
-        position="0 -0.48 0.03"
-        width="2">
-      </a-text>
-
-      <a-circle class="tocable" data-postre="0"
-        radius="0.38" position="0 0 0.45"
-        material="opacity: 0.001; transparent: true">
-      </a-circle>
+      <a-circle radius="0.40" color="#ffd6e8" position="0 0 0.003"></a-circle>
+      <a-ring radius-inner="0.36" radius-outer="0.39" color="#ffffff" position="0 0 0.006"></a-ring>
+      <a-entity position="0 0 0.04" rotation="90 0 0">
+        <a-gltf-model src="#modelCroissant" scale="0.024 0.024 0.024"></a-gltf-model>
+      </a-entity>
     </a-entity>
 
-    <!-- POSTRE 2: PANQUE -->
+    <!-- El panqué original tenía DOS targets: ambos muestran el mismo modelo -->
     <a-entity id="target1" mindar-image-target="targetIndex: 1">
-
-      <a-circle color="#D9D2FF"
-        radius="0.44" position="0 0 0.01">
-      </a-circle>
-
-      <a-ring id="anillo1"
-        color="#FFFFFF"
-        radius-inner="0.40"
-        radius-outer="0.44"
-        position="0 0 0.02">
-      </a-ring>
-
-      <a-gltf-model
-        src="#panque"
-        rotation="90 0 0"
-        position="0 0 0.15"
-        scale="0.65 0.65 0.65">
-      </a-gltf-model>
-
-      <a-text value="Panque"
-        align="center" color="#735A9C"
-        position="0 -0.48 0.03"
-        width="2">
-      </a-text>
-
-      <a-circle class="tocable" data-postre="1"
-        radius="0.38" position="0 0 0.45"
-        material="opacity: 0.001; transparent: true">
-      </a-circle>
+      <a-circle radius="0.40" color="#e6d9ff" position="0 0 0.003"></a-circle>
+      <a-ring radius-inner="0.36" radius-outer="0.39" color="#ffffff" position="0 0 0.006"></a-ring>
+      <a-entity position="0 0 0.13" rotation="90 0 0">
+        <a-gltf-model src="#modelPanque" scale="0.78 0.78 0.78"></a-gltf-model>
+      </a-entity>
     </a-entity>
-
-    <!-- POSTRE 3: BANDERILLA -->
     <a-entity id="target2" mindar-image-target="targetIndex: 2">
-
-      <a-circle color="#FFF0B8"
-        radius="0.44" position="0 0 0.01">
-      </a-circle>
-
-      <a-ring id="anillo2"
-        color="#FFFFFF"
-        radius-inner="0.40"
-        radius-outer="0.44"
-        position="0 0 0.02">
-      </a-ring>
-
-      <a-gltf-model
-        src="#banderilla"
-        rotation="90 0 0"
-        position="0 0 0.06"
-        scale="0.026 0.026 0.026">
-      </a-gltf-model>
-
-      <a-text value="Banderilla"
-        align="center" color="#987441"
-        position="0 -0.48 0.03"
-        width="2">
-      </a-text>
-
-      <a-circle class="tocable" data-postre="2"
-        radius="0.38" position="0 0 0.45"
-        material="opacity: 0.001; transparent: true">
-      </a-circle>
+      <a-circle radius="0.40" color="#e6d9ff" position="0 0 0.003"></a-circle>
+      <a-ring radius-inner="0.36" radius-outer="0.39" color="#ffffff" position="0 0 0.006"></a-ring>
+      <a-entity position="0 0 0.13" rotation="90 0 0">
+        <a-gltf-model src="#modelPanque" scale="0.78 0.78 0.78"></a-gltf-model>
+      </a-entity>
     </a-entity>
 
+    <!-- Pastel: cuarto target -->
+    <a-entity id="target3" mindar-image-target="targetIndex: 3">
+      <a-circle radius="0.40" color="#ffedc8" position="0 0 0.003"></a-circle>
+      <a-ring radius-inner="0.36" radius-outer="0.39" color="#ffffff" position="0 0 0.006"></a-ring>
+      <a-entity position="0 0 0.07" rotation="90 0 0">
+        <a-gltf-model src="#modelPastel" scale="0.55 0.55 0.55"></a-gltf-model>
+      </a-entity>
+    </a-entity>
   </a-scene>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener('DOMContentLoaded', () => {
+      const names = ['Croissant','Panqué','Pastel'];
+      // Target index -> índice de postre (dos imágenes corresponden al panqué)
+      const kind = [0, 1, 1, 2];
+      const visible = new Set();
+      const collected = new Set();
+      let currentTarget = null;
+      let arReady = false;
 
-      const nombres = ["Croissant", "Panqué", "Banderilla"];
-      const coleccion = new Set();
-      const visibles = new Set();
+      const status = document.getElementById('status');
+      const message = document.getElementById('message');
+      const collect = document.getElementById('collect');
+      const scanner = document.getElementById('scanner');
+      const sparkle = document.getElementById('sparkle');
+      const scene = document.querySelector('a-scene');
 
-      const contador = document.getElementById("contador");
-      const mensaje = document.getElementById("mensaje");
-
-      function actualizarContador() {
-        contador.textContent = [0, 1, 2]
-          .map(i => coleccion.has(i) ? "💗" : "🤍")
-          .join(" ");
-      }
-
-      function mostrarMensaje() {
-        if (coleccion.size === 3) {
-          mensaje.textContent =
-            "🎉 ¡Completaste tu colección de postres!";
+      function render() {
+        for (let n=0; n<3; n++) {
+          document.getElementById('stamp'+n).classList.toggle('found', collected.has(n));
+        }
+        if (collected.size === 3) {
+          message.textContent = '¡Colección completada! Eres la reina de los postrecitos ♡';
+          collect.textContent = '¡Conseguiste los tres! 🎉';
+          collect.disabled = true;
+          sparkle.classList.add('on');
+          scanner.classList.toggle('hidden', currentTarget !== null);
           return;
         }
-
-        if (visibles.size === 0) {
-          mensaje.textContent =
-            "Busca otro postre con tu cámara";
-          return;
+        sparkle.classList.remove('on');
+        if (currentTarget === null) {
+          message.textContent = 'Coloca una imagen de postre frente a la cámara ♡';
+          collect.textContent = 'Encuentra un postre primero';
+          collect.disabled = true;
+          scanner.classList.remove('hidden');
+        } else {
+          const n = kind[currentTarget];
+          message.textContent = collected.has(n)
+            ? `¡${names[n]} ya está en tu colección! 💕`
+            : `¡Encontraste ${names[n]}! ¿Lo guardamos?`;
+          collect.textContent = collected.has(n) ? 'Ya está coleccionado ✓' : '♡ Guardar postrecito';
+          collect.disabled = collected.has(n);
+          scanner.classList.add('hidden');
         }
-
-        const i = Array.from(visibles)[0];
-
-        mensaje.textContent = coleccion.has(i)
-          ? nombres[i] + " ya está en tu colección"
-          : "¡Encontraste " + nombres[i] +
-            "! Toca el postre para coleccionarlo";
       }
 
-      for (let i = 0; i < 3; i++) {
-
-        const target = document.getElementById("target" + i);
-
-        target.addEventListener("targetFound", () => {
-          visibles.add(i);
-          mostrarMensaje();
+      for (let i=0; i<4; i++) {
+        const target = document.getElementById('target'+i);
+        target.addEventListener('targetFound', () => {
+          visible.add(i);
+          currentTarget = i;
+          status.textContent = '✦ Imagen reconocida';
+          render();
         });
-
-        target.addEventListener("targetLost", () => {
-          visibles.delete(i);
-          mostrarMensaje();
+        target.addEventListener('targetLost', () => {
+          visible.delete(i);
+          if (currentTarget === i) currentTarget = visible.size ? [...visible][0] : null;
+          status.textContent = currentTarget === null ? 'Buscando postrecitos…' : '✦ Imagen reconocida';
+          render();
         });
       }
 
-      document.querySelectorAll(".tocable").forEach(objeto => {
-
-        objeto.addEventListener("click", () => {
-
-          const i = Number(objeto.dataset.postre);
-
-          if (coleccion.has(i)) {
-            mensaje.textContent =
-              "¡Ya tienes este postre! uvu💗";
-            return;
-          }
-
-          coleccion.add(i);
-
-          document.getElementById("anillo" + i)
-            .setAttribute("color", "#FF85AE");
-
-          actualizarContador();
-
-          mensaje.textContent =
-            "✨ ¡" + nombres[i] + " agregado a tu colección!";
-
-          if (coleccion.size === 3) {
-            mensaje.textContent =
-              "¡Completaste tu colección de postres!";
-          }
-        });
+      collect.addEventListener('click', () => {
+        if (currentTarget === null) return;
+        const n = kind[currentTarget];
+        if (collected.has(n)) return;
+        collected.add(n);
+        sparkle.classList.add('on');
+        render();
       });
 
-      document.querySelector("a-scene")
-        .addEventListener("arError", () => {
-          mensaje.textContent =
-            "No se pudo iniciar la cámara o el reconocimiento";
-        });
+      document.getElementById('reset').addEventListener('click', () => {
+        collected.clear();
+        render();
+      });
 
+      scene.addEventListener('arReady', () => {
+        arReady = true;
+        status.textContent = 'Cámara lista ♡';
+      });
+      scene.addEventListener('arError', (e) => {
+        status.textContent = 'No se pudo iniciar la cámara o la realidad aumentada';
+        message.textContent = 'Revisa los permisos de cámara y abre la página con HTTPS';
+        console.error('MindAR:', e);
+      });
+      scene.addEventListener('loaded', () => {
+        if (!arReady) status.textContent = 'Preparando reconocimiento…';
+      });
+      document.querySelectorAll('a-gltf-model').forEach(m => {
+        m.addEventListener('model-error', e => {
+          console.error('Error al cargar modelo',m.getAttribute('src'),e);
+          status.textContent = 'No se pudo cargar un modelo 3D';
+        });
+      });
+      render();
     });
   </script>
-
 </body>
 </html>
 
