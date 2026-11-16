@@ -349,22 +349,23 @@
       const reiniciar = document.getElementById("reiniciar");
 
       // Comprueba si el postre ya está guardado
-      function actualizarColeccion() {
 
-        for (let i = 0; i < 3; i++) {
+function actualizarColeccion() {
 
-          const elemento = document.getElementById("coleccion" + i);
-          const anillo = document.getElementById("anillo" + i);
+  for (let i = 0; i < 3; i++) {
 
-          if (coleccion.has(i)) {
-            elemento.classList.add("guardado");
-            anillo.setAttribute("color", "#FF85AE");
-          } else {
-            elemento.classList.remove("guardado");
-            anillo.setAttribute("color", "#FFFFFF");
-          }
-        }
-      }
+    const elemento = document.getElementById("coleccion" + i);
+
+    if (coleccion.has(i)) {
+      elemento.classList.add("guardado");
+    } else {
+      elemento.classList.remove("guardado");
+    }
+
+  }
+
+}
+
 
       // Actualiza los mensajes de la interfaz
       function actualizarInterfaz() {
