@@ -1,210 +1,554 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#ffe7ee">
-  <title>Dulce colección | Pastelería AR</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Dulce Colección ♡</title>
+
+  <!-- Librerías de realidad aumentada -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
   <style>
-    :root { --ink:#704c62; --rose:#ec82a6; --cream:#fffaf3; --border:#f4c6d7; }
-    * {box-sizing:border-box}
-    body {margin:0;overflow:hidden;font-family:ui-rounded,'Trebuchet MS',Arial,sans-serif;color:var(--ink);background:#fff0f3}
-    .hud {position:fixed;inset:0;z-index:20;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 14px) 15px calc(env(safe-area-inset-bottom) + 18px)}
-    .top {width:min(100%,410px);background:rgba(255,250,247,.94);border:2px solid #fff;border-radius:27px;padding:14px 17px 13px;box-shadow:0 8px 26px #6e32512c;text-align:center;backdrop-filter:blur(8px)}
-    .eyebrow {font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#c47796;font-weight:bold}
-    h1 {margin:3px 0 5px;font-size:23px;letter-spacing:-.5px}
-    .subtitle {margin:0;font-size:13px;color:#946b82}
-    .stamps {display:flex;gap:7px;justify-content:center;margin-top:11px}
-    .stamp {border:1.5px solid #f5d0df;background:#fff1f5;border-radius:999px;padding:7px 10px;font-size:12px;opacity:.65;transition:.3s}
-    .stamp.found {background:#ffe0ec;border-color:#f5a9c3;opacity:1;box-shadow:0 3px 12px #f8b3ce80}
-    .scanner {position:absolute;left:50%;top:51%;transform:translate(-50%,-50%);width:min(66vw,295px);aspect-ratio:1;border:3px dashed #ffffffeb;border-radius:30px;filter:drop-shadow(0 2px 3px #5f365988);transition:opacity .25s}
-    .scanner::after {content:'✦';position:absolute;right:-9px;top:-20px;font-size:25px;color:#fff}
-    .scanner.hidden {opacity:0}
-    .bottom {width:min(100%,410px);background:rgba(255,250,247,.96);border:2px solid #fff;border-radius:26px;padding:16px;text-align:center;box-shadow:0 9px 28px #6e32512e;pointer-events:auto;backdrop-filter:blur(8px)}
-    #status {font-size:12px;color:#ab8194;margin-bottom:6px}
-    #message {font-size:16px;font-weight:bold;line-height:1.4;min-height:42px;display:flex;align-items:center;justify-content:center}
-    #collect {border:0;border-radius:17px;width:100%;margin-top:10px;min-height:52px;background:linear-gradient(135deg,#f9a6bf,#e782a5);color:#632c49;font-weight:800;font-size:15px;box-shadow:0 5px 0 #d87599;cursor:pointer;touch-action:manipulation}
-    #collect:disabled {background:#f2dce4;color:#ac8a9c;box-shadow:none;cursor:default}
-    #reset {border:0;background:transparent;color:#a77891;text-decoration:underline;padding:10px 8px 0;font-size:12px;cursor:pointer}
-    .sparkle {display:none;font-size:24px;margin:5px}
-    .sparkle.on {display:block;animation:pop .4s both}
-    @keyframes pop {from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
-    [hidden]{display:none!important}
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      color: #79546b;
+    }
+
+    .panel {
+      position: fixed;
+      z-index: 10;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92%;
+      max-width: 420px;
+      background: rgba(255, 250, 248, 0.94);
+      border: 2px solid #ffffff;
+      border-radius: 28px;
+      padding: 18px;
+      text-align: center;
+      box-shadow: 0 5px 20px rgba(116, 65, 91, 0.15);
+    }
+
+    /* Encabezado */
+    #encabezado {
+      top: 18px;
+      pointer-events: none;
+    }
+
+    .subtitulo {
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: #c487a2;
+    }
+
+    h1 {
+      font-size: 26px;
+      margin: 10px 0;
+      color: #76516b;
+    }
+
+    .descripcion {
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+
+    /* Colección */
+    #coleccion {
+      display: flex;
+      justify-content: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .postre {
+      background: #fff0f5;
+      border: 2px solid #f8dce7;
+      border-radius: 30px;
+      padding: 9px 12px;
+      font-size: 13px;
+      opacity: 0.65;
+      transition: 0.3s;
+    }
+
+    .postre.guardado {
+      background: #ffd5e5;
+      border-color: #f2a0be;
+      opacity: 1;
+    }
+
+    /* Guía de escaneo */
+    #guia {
+      position: fixed;
+      z-index: 5;
+      top: 51%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 65vw;
+      height: 65vw;
+      max-width: 300px;
+      max-height: 300px;
+      border: 3px dashed rgba(255,255,255,0.9);
+      border-radius: 30px;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    #guia::after {
+      content: "✧";
+      position: absolute;
+      top: -25px;
+      right: -15px;
+      color: white;
+      font-size: 42px;
+    }
+
+    #guia.oculto {
+      opacity: 0;
+    }
+
+    /* Panel inferior */
+    #panel-inferior {
+      bottom: 20px;
+    }
+
+    #estado {
+      font-size: 13px;
+      color: #b58a9f;
+      margin-bottom: 10px;
+    }
+
+    #mensaje {
+      font-size: 19px;
+      font-weight: bold;
+      line-height: 1.4;
+      margin-bottom: 18px;
+    }
+
+    button {
+      border: none;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    #guardar {
+      width: 100%;
+      padding: 17px;
+      border-radius: 24px;
+      background: #f4a5c1;
+      color: #673b53;
+      font-size: 17px;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+
+    #guardar:disabled {
+      background: #f2dce5;
+      color: #b69baa;
+      cursor: default;
+    }
+
+    #reiniciar {
+      margin-top: 15px;
+      background: none;
+      color: #b08097;
+      text-decoration: underline;
+      font-size: 13px;
+    }
+
+    @media (max-height: 650px) {
+      #encabezado {
+        top: 8px;
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 20px;
+        margin: 5px;
+      }
+
+      .descripcion {
+        margin-bottom: 6px;
+      }
+
+      #panel-inferior {
+        bottom: 8px;
+        padding: 12px;
+      }
+
+      #mensaje {
+        margin-bottom: 10px;
+        font-size: 16px;
+      }
+
+      #guardar {
+        padding: 12px;
+      }
+
+      #guia {
+        width: 45vw;
+        height: 45vw;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div class="hud">
-    <header class="top">
-      <div class="eyebrow">mini pastelería mágica</div>
-      <h1>🍰 Dulce colección ♡</h1>
-      <p class="subtitle">Busca los postrecitos y completa tu colección</p>
-      <div class="stamps">
-        <span id="stamp0" class="stamp">🥐 Croissant</span>
-        <span id="stamp1" class="stamp">🧁 Panqué</span>
-        <span id="stamp2" class="stamp">🎂 Pastel</span>
-      </div>
-    </header>
-    <div id="scanner" class="scanner" aria-hidden="true"></div>
-    <section class="bottom" aria-live="polite">
-      <div id="status">Preparando la cámara…</div>
-      <div id="message">Apunta a una de las imágenes de postres ♡</div>
-      <div id="sparkle" class="sparkle" aria-hidden="true">✨ 💕 ✨</div>
-      <button id="collect" type="button" disabled>Encuentra un postre primero</button>
-      <button id="reset" type="button">Reiniciar colección ↺</button>
-    </section>
+
+  <!-- Interfaz superior -->
+  <div class="panel" id="encabezado">
+
+    <div class="subtitulo">
+      MINI PASTELERÍA MÁGICA
+    </div>
+
+    <h1>🍰 Dulce colección ♡</h1>
+
+    <div class="descripcion">
+      Busca los postrecitos y completa tu colección
+    </div>
+
+    <div id="coleccion">
+      <div class="postre" id="coleccion0">🎂 Pastel</div>
+      <div class="postre" id="coleccion1">🥐 Croissant</div>
+      <div class="postre" id="coleccion2">🧁 Panqué</div>
+    </div>
+
   </div>
 
+  <!-- Marco para escanear -->
+  <div id="guia"></div>
+
+  <!-- Interfaz inferior -->
+  <div class="panel" id="panel-inferior">
+
+    <div id="estado">
+      Preparando la cámara...
+    </div>
+
+    <div id="mensaje">
+      Coloca una imagen de postre frente a la cámara ♡
+    </div>
+
+    <button id="guardar" disabled>
+      Encuentra un postre primero
+    </button>
+
+    <button id="reiniciar">
+      Reiniciar colección ↺
+    </button>
+
+  </div>
+
+  <!-- Escena de realidad aumentada -->
   <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 4; uiLoading: yes; uiScanning: no; uiError: yes"
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 3; uiScanning: no"
     color-space="sRGB"
     renderer="colorManagement: true; physicallyCorrectLights: true"
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false">
-    <a-assets timeout="25000">
-      <a-asset-item id="modelCroissant" src="./croissant.glb"></a-asset-item>
-      <a-asset-item id="modelPanque" src="./panque.glb"></a-asset-item>
-      <a-asset-item id="modelPastel" src="./pastel.glb"></a-asset-item>
+    device-orientation-permission-ui="enabled: false"
+    loading-screen="enabled: false">
+
+    <!-- Modelos 3D -->
+    <a-assets timeout="30000">
+      <a-asset-item
+        id="modeloPastel"
+        src="./pastel.glb">
+      </a-asset-item>
+
+      <a-asset-item
+        id="modeloCroissant"
+        src="./croissant.glb">
+      </a-asset-item>
+
+      <a-asset-item
+        id="modeloPanque"
+        src="./panque.glb">
+      </a-asset-item>
     </a-assets>
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-    <!-- Croissant: primer target del archivo compilado -->
-    <a-entity id="target0" mindar-image-target="targetIndex: 0">
-      <a-circle radius="0.40" color="#ffd6e8" position="0 0 0.003"></a-circle>
-      <a-ring radius-inner="0.36" radius-outer="0.39" color="#ffffff" position="0 0 0.006"></a-ring>
-      <a-entity position="0 0 0.04" rotation="90 0 0">
-        <a-gltf-model src="#modelCroissant" scale="0.024 0.024 0.024"></a-gltf-model>
-      </a-entity>
+    <!-- Cámara -->
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: false">
+    </a-camera>
+
+    <!-- TARGET 0: PASTEL -->
+    <a-entity
+      id="target0"
+      mindar-image-target="targetIndex: 0">
+
+      <a-circle
+        radius="0.45"
+        color="#FFD8E8"
+        position="0 0 0.01">
+      </a-circle>
+
+      <a-ring
+        id="anillo0"
+        radius-inner="0.40"
+        radius-outer="0.45"
+        color="#FFFFFF"
+        position="0 0 0.02">
+      </a-ring>
+
+      <a-gltf-model
+        src="#modeloPastel"
+        position="0 0 0.08"
+        rotation="90 0 0"
+        scale="0.03 0.03 0.03">
+      </a-gltf-model>
+
+      <a-text
+        value="Pastel"
+        align="center"
+        color="#9E6684"
+        width="2"
+        position="0 -0.52 0.03">
+      </a-text>
+
     </a-entity>
 
-    <!-- El panqué original tenía DOS targets: ambos muestran el mismo modelo -->
-    <a-entity id="target1" mindar-image-target="targetIndex: 1">
-      <a-circle radius="0.40" color="#e6d9ff" position="0 0 0.003"></a-circle>
-      <a-ring radius-inner="0.36" radius-outer="0.39" color="#ffffff" position="0 0 0.006"></a-ring>
-      <a-entity position="0 0 0.13" rotation="90 0 0">
-        <a-gltf-model src="#modelPanque" scale="0.78 0.78 0.78"></a-gltf-model>
-      </a-entity>
-    </a-entity>
-    <a-entity id="target2" mindar-image-target="targetIndex: 2">
-      <a-circle radius="0.40" color="#e6d9ff" position="0 0 0.003"></a-circle>
-      <a-ring radius-inner="0.36" radius-outer="0.39" color="#ffffff" position="0 0 0.006"></a-ring>
-      <a-entity position="0 0 0.13" rotation="90 0 0">
-        <a-gltf-model src="#modelPanque" scale="0.78 0.78 0.78"></a-gltf-model>
-      </a-entity>
+    <!-- TARGET 1: CROISSANT -->
+    <a-entity
+      id="target1"
+      mindar-image-target="targetIndex: 1">
+
+      <a-circle
+        radius="0.45"
+        color="#FFF0CB"
+        position="0 0 0.01">
+      </a-circle>
+
+      <a-ring
+        id="anillo1"
+        radius-inner="0.40"
+        radius-outer="0.45"
+        color="#FFFFFF"
+        position="0 0 0.02">
+      </a-ring>
+
+      <a-gltf-model
+        src="#modeloCroissant"
+        position="0 0 0.08"
+        rotation="90 0 0"
+        scale="0.022 0.022 0.022">
+      </a-gltf-model>
+
+      <a-text
+        value="Croissant"
+        align="center"
+        color="#A98159"
+        width="2"
+        position="0 -0.52 0.03">
+      </a-text>
+
     </a-entity>
 
-    <!-- Pastel: cuarto target -->
-    <a-entity id="target3" mindar-image-target="targetIndex: 3">
-      <a-circle radius="0.40" color="#ffedc8" position="0 0 0.003"></a-circle>
-      <a-ring radius-inner="0.36" radius-outer="0.39" color="#ffffff" position="0 0 0.006"></a-ring>
-      <a-entity position="0 0 0.07" rotation="90 0 0">
-        <a-gltf-model src="#modelPastel" scale="0.55 0.55 0.55"></a-gltf-model>
-      </a-entity>
+    <!-- TARGET 2: PANQUÉ -->
+    <a-entity
+      id="target2"
+      mindar-image-target="targetIndex: 2">
+
+      <a-circle
+        radius="0.45"
+        color="#E6D9FF"
+        position="0 0 0.01">
+      </a-circle>
+
+      <a-ring
+        id="anillo2"
+        radius-inner="0.40"
+        radius-outer="0.45"
+        color="#FFFFFF"
+        position="0 0 0.02">
+      </a-ring>
+
+      <a-gltf-model
+        src="#modeloPanque"
+        position="0 0 0.15"
+        rotation="90 0 0"
+        scale="0.65 0.65 0.65">
+      </a-gltf-model>
+
+      <a-text
+        value="Panque"
+        align="center"
+        color="#967CB5"
+        width="2"
+        position="0 -0.52 0.03">
+      </a-text>
+
     </a-entity>
+
   </a-scene>
 
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const names = ['Croissant','Panqué','Pastel'];
-      // Target index -> índice de postre (dos imágenes corresponden al panqué)
-      const kind = [0, 1, 1, 2];
-      const visible = new Set();
-      const collected = new Set();
-      let currentTarget = null;
-      let arReady = false;
+    document.addEventListener("DOMContentLoaded", function () {
 
-      const status = document.getElementById('status');
-      const message = document.getElementById('message');
-      const collect = document.getElementById('collect');
-      const scanner = document.getElementById('scanner');
-      const sparkle = document.getElementById('sparkle');
-      const scene = document.querySelector('a-scene');
+      const nombres = ["Pastel", "Croissant", "Panqué"];
 
-      function render() {
-        for (let n=0; n<3; n++) {
-          document.getElementById('stamp'+n).classList.toggle('found', collected.has(n));
+      const coleccion = new Set();
+      const visibles = new Set();
+
+      let postreActual = null;
+      let errorCarga = false;
+
+      const escena = document.querySelector("a-scene");
+      const mensaje = document.getElementById("mensaje");
+      const estado = document.getElementById("estado");
+      const guia = document.getElementById("guia");
+      const guardar = document.getElementById("guardar");
+      const reiniciar = document.getElementById("reiniciar");
+
+      // Comprueba si el postre ya está guardado
+      function actualizarColeccion() {
+
+        for (let i = 0; i < 3; i++) {
+
+          const elemento = document.getElementById("coleccion" + i);
+          const anillo = document.getElementById("anillo" + i);
+
+          if (coleccion.has(i)) {
+            elemento.classList.add("guardado");
+            anillo.setAttribute("color", "#FF85AE");
+          } else {
+            elemento.classList.remove("guardado");
+            anillo.setAttribute("color", "#FFFFFF");
+          }
         }
-        if (collected.size === 3) {
-          message.textContent = '¡Colección completada! Eres la reina de los postrecitos ♡';
-          collect.textContent = '¡Conseguiste los tres! 🎉';
-          collect.disabled = true;
-          sparkle.classList.add('on');
-          scanner.classList.toggle('hidden', currentTarget !== null);
+      }
+
+      // Actualiza los mensajes de la interfaz
+      function actualizarInterfaz() {
+
+        if (coleccion.size === 3) {
+          estado.textContent = "Colección completada ♡";
+          mensaje.textContent = "¡Conseguiste todos los postrecitos! 🎉";
+          guardar.disabled = true;
+          guardar.textContent = "Colección completa 💗";
+          guia.classList.add("oculto");
           return;
         }
-        sparkle.classList.remove('on');
-        if (currentTarget === null) {
-          message.textContent = 'Coloca una imagen de postre frente a la cámara ♡';
-          collect.textContent = 'Encuentra un postre primero';
-          collect.disabled = true;
-          scanner.classList.remove('hidden');
+
+        if (visibles.size === 0) {
+
+          postreActual = null;
+          guia.classList.remove("oculto");
+
+          if (!errorCarga) {
+            estado.textContent = "Buscando postrecitos...";
+          }
+
+          mensaje.textContent =
+            "Coloca una imagen de postre frente a la cámara ♡";
+
+          guardar.disabled = true;
+          guardar.textContent = "Encuentra un postre primero";
+          return;
+        }
+
+        // Utiliza uno de los targets visibles
+        if (!visibles.has(postreActual)) {
+          postreActual = Array.from(visibles)[visibles.size - 1];
+        }
+
+        guia.classList.add("oculto");
+
+        const nombre = nombres[postreActual];
+
+        estado.textContent = "✦ Imagen reconocida";
+
+        if (coleccion.has(postreActual)) {
+
+          mensaje.textContent =
+            "¡Ya tienes " + nombre + " en tu colección! 💗";
+
+          guardar.disabled = true;
+          guardar.textContent = "Postrecito guardado ♡";
+
         } else {
-          const n = kind[currentTarget];
-          message.textContent = collected.has(n)
-            ? `¡${names[n]} ya está en tu colección! 💕`
-            : `¡Encontraste ${names[n]}! ¿Lo guardamos?`;
-          collect.textContent = collected.has(n) ? 'Ya está coleccionado ✓' : '♡ Guardar postrecito';
-          collect.disabled = collected.has(n);
-          scanner.classList.add('hidden');
+
+          mensaje.textContent =
+            "¡Encontraste " + nombre + "! ✨";
+
+          guardar.disabled = false;
+          guardar.textContent = "♡ Guardar postrecito";
         }
       }
 
-      for (let i=0; i<4; i++) {
-        const target = document.getElementById('target'+i);
-        target.addEventListener('targetFound', () => {
-          visible.add(i);
-          currentTarget = i;
-          status.textContent = '✦ Imagen reconocida';
-          render();
+      // Detecta las imágenes
+      for (let i = 0; i < 3; i++) {
+
+        const target = document.getElementById("target" + i);
+
+        target.addEventListener("targetFound", function () {
+          visibles.add(i);
+          postreActual = i;
+          actualizarInterfaz();
         });
-        target.addEventListener('targetLost', () => {
-          visible.delete(i);
-          if (currentTarget === i) currentTarget = visible.size ? [...visible][0] : null;
-          status.textContent = currentTarget === null ? 'Buscando postrecitos…' : '✦ Imagen reconocida';
-          render();
+
+        target.addEventListener("targetLost", function () {
+          visibles.delete(i);
+          actualizarInterfaz();
         });
       }
 
-      collect.addEventListener('click', () => {
-        if (currentTarget === null) return;
-        const n = kind[currentTarget];
-        if (collected.has(n)) return;
-        collected.add(n);
-        sparkle.classList.add('on');
-        render();
+      // Guardar el postre encontrado
+      guardar.addEventListener("click", function () {
+
+        if (postreActual === null) return;
+        if (coleccion.has(postreActual)) return;
+
+        coleccion.add(postreActual);
+
+        actualizarColeccion();
+        actualizarInterfaz();
       });
 
-      document.getElementById('reset').addEventListener('click', () => {
-        collected.clear();
-        render();
+      // Reiniciar toda la colección
+      reiniciar.addEventListener("click", function () {
+
+        coleccion.clear();
+
+        actualizarColeccion();
+        actualizarInterfaz();
       });
 
-      scene.addEventListener('arReady', () => {
-        arReady = true;
-        status.textContent = 'Cámara lista ♡';
+      // Avisos de inicio y errores
+      escena.addEventListener("arReady", function () {
+        estado.textContent = "Cámara lista ♡";
+        actualizarInterfaz();
       });
-      scene.addEventListener('arError', (e) => {
-        status.textContent = 'No se pudo iniciar la cámara o la realidad aumentada';
-        message.textContent = 'Revisa los permisos de cámara y abre la página con HTTPS';
-        console.error('MindAR:', e);
+
+      escena.addEventListener("arError", function () {
+        estado.textContent = "Error al iniciar la realidad aumentada";
+        mensaje.textContent =
+          "Revisa los permisos de cámara y el archivo targets.mind";
       });
-      scene.addEventListener('loaded', () => {
-        if (!arReady) status.textContent = 'Preparando reconocimiento…';
-      });
-      document.querySelectorAll('a-gltf-model').forEach(m => {
-        m.addEventListener('model-error', e => {
-          console.error('Error al cargar modelo',m.getAttribute('src'),e);
-          status.textContent = 'No se pudo cargar un modelo 3D';
+
+      // Comprueba si falla algún modelo
+      document.querySelectorAll("a-gltf-model").forEach(function (modelo) {
+
+        modelo.addEventListener("model-error", function () {
+          errorCarga = true;
+          estado.textContent = "No se pudo cargar un modelo 3D";
+          console.error("Error en modelo:", modelo.getAttribute("src"));
         });
+
       });
-      render();
+
+      actualizarColeccion();
     });
   </script>
-</body>
-</html>
 
-      </a-entity>
-    </a-scene>
-  </body>
+</body>
 </html>
