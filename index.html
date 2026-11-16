@@ -1,41 +1,281 @@
 
-<html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi Pastelería AR</title>
 
-    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-  </head>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-  <body>
-    <a-scene
-      mindar-image="imageTargetSrc: ./croissant.mind; maxTrack: 1"
-      color-space="sRGB"
-      renderer="colorManagement: true; physicallyCorrectLights: true"
-      vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
 
-      <a-assets>
-        <a-asset-item
-          id="CroissantModel"
-          src="./croissant.glb">
-        </a-asset-item>
-      </a-assets>
+    .panel {
+      position: fixed;
+      z-index: 10;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 85%;
+      max-width: 360px;
+      padding: 15px;
+      text-align: center;
+      border-radius: 22px;
+      background: #fff3f0;
+      color: #935e72;
+      box-shadow: 0 4px 15px #0002;
+      pointer-events: none;
+    }
 
-      <a-camera
-        position="0 0 0"
-        look-controls="enabled: false">
-      </a-camera>
+    #encabezado {
+      top: 20px;
+    }
 
-      <a-entity mindar-image-target="targetIndex: 0">
+    #mensaje {
+      bottom: 25px;
+      font-size: 15px;
+    }
 
-        <a-gltf-model
-          src="#CroissantModel"
-          rotation="0 0 0"
-          position="0 0 0.1"
-          scale="0.1 0.1 0.1"
-          animation="property: position; from: 0 0 0.1; to: 0 0.2 0.1; dur: 1200; easing: easeInOutSine; loop: true; dir: alternate">
-        </a-gltf-model>
+    h2 {
+      margin: 0 0 8px;
+    }
+
+    #contador {
+      font-size: 20px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="panel" id="encabezado">
+    <h2>🍰 Mi Pastelería AR</h2>
+    <div>Encuentra los 3 postres</div>
+    <div id="contador">🤍 🤍 🤍</div>
+  </div>
+
+  <div class="panel" id="mensaje">
+    Apunta la cámara hacia un postre 💕
+  </div>
+
+  <a-scene
+    mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 3; uiScanning: no"
+    color-space="sRGB"
+    renderer="colorManagement: true; physicallyCorrectLights: true"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+
+    <a-assets>
+      <a-asset-item id="croissant" src="./croissant.glb"></a-asset-item>
+      <a-asset-item id="panque" src="./panque.glb"></a-asset-item>
+      <a-asset-item id="banderilla" src="./banderilla.glb"></a-asset-item>
+    </a-assets>
+
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: false"
+      cursor="fuse: false; rayOrigin: mouse"
+      raycaster="objects: .tocable; near: 0; far: 100">
+    </a-camera>
+
+    <!-- POSTRE 1: CROISSANT -->
+    <a-entity id="target0" mindar-image-target="targetIndex: 0">
+
+      <a-circle color="#FFD6E7"
+        radius="0.44" position="0 0 0.01">
+      </a-circle>
+
+      <a-ring id="anillo0"
+        color="#FFFFFF"
+        radius-inner="0.40"
+        radius-outer="0.44"
+        position="0 0 0.02">
+      </a-ring>
+
+      <a-gltf-model
+        src="#croissant"
+        rotation="90 0 0"
+        position="0 0 0.05"
+        scale="0.022 0.022 0.022">
+      </a-gltf-model>
+
+      <a-text value="Croissant"
+        align="center" color="#8C5168"
+        position="0 -0.48 0.03"
+        width="2">
+      </a-text>
+
+      <a-circle class="tocable" data-postre="0"
+        radius="0.38" position="0 0 0.45"
+        material="opacity: 0.001; transparent: true">
+      </a-circle>
+    </a-entity>
+
+    <!-- POSTRE 2: PANQUE -->
+    <a-entity id="target1" mindar-image-target="targetIndex: 1">
+
+      <a-circle color="#D9D2FF"
+        radius="0.44" position="0 0 0.01">
+      </a-circle>
+
+      <a-ring id="anillo1"
+        color="#FFFFFF"
+        radius-inner="0.40"
+        radius-outer="0.44"
+        position="0 0 0.02">
+      </a-ring>
+
+      <a-gltf-model
+        src="#panque"
+        rotation="90 0 0"
+        position="0 0 0.15"
+        scale="0.65 0.65 0.65">
+      </a-gltf-model>
+
+      <a-text value="Panque"
+        align="center" color="#735A9C"
+        position="0 -0.48 0.03"
+        width="2">
+      </a-text>
+
+      <a-circle class="tocable" data-postre="1"
+        radius="0.38" position="0 0 0.45"
+        material="opacity: 0.001; transparent: true">
+      </a-circle>
+    </a-entity>
+
+    <!-- POSTRE 3: BANDERILLA -->
+    <a-entity id="target2" mindar-image-target="targetIndex: 2">
+
+      <a-circle color="#FFF0B8"
+        radius="0.44" position="0 0 0.01">
+      </a-circle>
+
+      <a-ring id="anillo2"
+        color="#FFFFFF"
+        radius-inner="0.40"
+        radius-outer="0.44"
+        position="0 0 0.02">
+      </a-ring>
+
+      <a-gltf-model
+        src="#banderilla"
+        rotation="90 0 0"
+        position="0 0 0.06"
+        scale="0.026 0.026 0.026">
+      </a-gltf-model>
+
+      <a-text value="Banderilla"
+        align="center" color="#987441"
+        position="0 -0.48 0.03"
+        width="2">
+      </a-text>
+
+      <a-circle class="tocable" data-postre="2"
+        radius="0.38" position="0 0 0.45"
+        material="opacity: 0.001; transparent: true">
+      </a-circle>
+    </a-entity>
+
+  </a-scene>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+      const nombres = ["Croissant", "Panqué", "Banderilla"];
+      const coleccion = new Set();
+      const visibles = new Set();
+
+      const contador = document.getElementById("contador");
+      const mensaje = document.getElementById("mensaje");
+
+      function actualizarContador() {
+        contador.textContent = [0, 1, 2]
+          .map(i => coleccion.has(i) ? "💗" : "🤍")
+          .join(" ");
+      }
+
+      function mostrarMensaje() {
+        if (coleccion.size === 3) {
+          mensaje.textContent =
+            "🎉 ¡Completaste tu colección de postres!";
+          return;
+        }
+
+        if (visibles.size === 0) {
+          mensaje.textContent =
+            "Busca otro postre con tu cámara";
+          return;
+        }
+
+        const i = Array.from(visibles)[0];
+
+        mensaje.textContent = coleccion.has(i)
+          ? nombres[i] + " ya está en tu colección"
+          : "¡Encontraste " + nombres[i] +
+            "! Toca el postre para coleccionarlo";
+      }
+
+      for (let i = 0; i < 3; i++) {
+
+        const target = document.getElementById("target" + i);
+
+        target.addEventListener("targetFound", () => {
+          visibles.add(i);
+          mostrarMensaje();
+        });
+
+        target.addEventListener("targetLost", () => {
+          visibles.delete(i);
+          mostrarMensaje();
+        });
+      }
+
+      document.querySelectorAll(".tocable").forEach(objeto => {
+
+        objeto.addEventListener("click", () => {
+
+          const i = Number(objeto.dataset.postre);
+
+          if (coleccion.has(i)) {
+            mensaje.textContent =
+              "¡Ya tienes este postre! uvu💗";
+            return;
+          }
+
+          coleccion.add(i);
+
+          document.getElementById("anillo" + i)
+            .setAttribute("color", "#FF85AE");
+
+          actualizarContador();
+
+          mensaje.textContent =
+            "✨ ¡" + nombres[i] + " agregado a tu colección!";
+
+          if (coleccion.size === 3) {
+            mensaje.textContent =
+              "¡Completaste tu colección de postres!";
+          }
+        });
+      });
+
+      document.querySelector("a-scene")
+        .addEventListener("arError", () => {
+          mensaje.textContent =
+            "No se pudo iniciar la cámara o el reconocimiento";
+        });
+
+    });
+  </script>
+
+</body>
+</html>
 
       </a-entity>
     </a-scene>
